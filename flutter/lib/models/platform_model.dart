@@ -5,7 +5,7 @@ import 'package:flutter_hbb/generated_bridge.dart'
 final platformFFI = PlatformFFI.instance;
 final localeName = PlatformFFI.localeName;
 
-XfinityProviderImpl get bind => platformFFI.ffiBind;
+XfinityproviderImpl get bind => platformFFI.ffiBind;
 
 String ffiGetByName(String name, [String arg = '']) {
   return PlatformFFI.getByName(name, arg);

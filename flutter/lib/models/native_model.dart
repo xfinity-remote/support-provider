@@ -32,7 +32,7 @@ class PlatformFFI {
   // _homeDir is only needed for Android and IOS.
   String _homeDir = '';
   final _eventHandlers = <String, Map<String, HandleEvent>>{};
-  late XfinityProviderImpl _ffiBind;
+  late XfinityproviderImpl _ffiBind;
   late String _appType;
   StreamEventHandler? _eventCallback;
 
@@ -41,7 +41,7 @@ class PlatformFFI {
   static final PlatformFFI instance = PlatformFFI._();
   final _toAndroidChannel = const MethodChannel('mChannel');
 
-  XfinityProviderImpl get ffiBind => _ffiBind;
+  XfinityproviderImpl get ffiBind => _ffiBind;
   F3? _session_get_rgba;
 
   static get localeName => Platform.localeName;
@@ -139,7 +139,7 @@ class PlatformFFI {
       } catch (e) {
         debugPrint('Failed to get documents directory: $e');
       }
-      _ffiBind = XfinityProviderImpl(dylib);
+      _ffiBind = XfinityproviderImpl(dylib);
 
       if (isLinux) {
         if (isMain) {
@@ -236,10 +236,10 @@ class PlatformFFI {
   }
 
   /// Start listening to the Rust core's events and frames.
-  void _startListenEvent(XfinityProviderImpl xfinityProviderImpl) {
+  void _startListenEvent(XfinityproviderImpl xfinityproviderImpl) {
     final appType =
         _appType == kAppTypeDesktopRemote ? '$_appType,$kWindowId' : _appType;
-    var sink = xfinityProviderImpl.startGlobalEventStream(appType: appType);
+    var sink = xfinityproviderImpl.startGlobalEventStream(appType: appType);
     sink.listen((message) {
       () async {
         try {
