@@ -1458,6 +1458,10 @@ pub fn get_dst_align_rgba() -> usize {
     1
 }
 
+pub fn enable_provider_mode(){
+    config::HARD_SETTINGS.write().unwrap().insert("conn-type".to_owned(), "outgoing".to_owned());
+}
+
 pub fn read_custom_client(config: &str) {
     let Ok(data) = decode64(config) else {
         log::error!("Failed to decode custom client config");
