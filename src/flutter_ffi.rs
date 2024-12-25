@@ -803,6 +803,14 @@ pub fn main_change_id(new_id: String) {
     change_id(new_id)
 }
 
+pub fn main_change_userid(new_id: String) {
+    change_userid(new_id)
+}
+
+pub fn main_get_userid(new_id: String) -> SyncReturn<String> {
+    SyncReturn(get_userid(new_id))
+}
+
 pub fn main_get_async_status() -> String {
     get_async_job_status()
 }

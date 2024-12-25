@@ -15,8 +15,11 @@ import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../common.dart';
+import '../../consts.dart';
 import '../../models/model.dart';
 import '../../models/platform_model.dart';
+import '../../models/server_model.dart';
+import '../formatter/id_formatter.dart';
 import 'address_book.dart';
 
 void clientClose(SessionID sessionId, OverlayDialogManager dialogManager) {
@@ -164,6 +167,94 @@ void changeIdDialog() {
                     }).toList(),
                   )).marginOnly(bottom: 8)
               : SizedBox.shrink(),
+          // NOT use Offstage to wrap LinearProgressIndicator
+          if (isInProgress) const LinearProgressIndicator(),
+        ],
+      ),
+      actions: [
+        dialogButton("Cancel", onPressed: close, isOutline: true),
+        dialogButton("OK", onPressed: submit),
+      ],
+      onSubmit: submit,
+      onCancel: close,
+    );
+  });
+}
+
+
+Future<void> changeUsernameDialog() async {
+  var newId = "";
+  var msg = "";
+  var isInProgress = false;
+
+  // await bind.mainSetOption(
+  //     key: kOptionDisplayName, value: "defaultOptionWhitelist");
+  final ac = kLoginDialogTag;
+  final test1 = await bind.mainGetLocalOption(key: kOptionDisplayName);
+  final vgh = await bind.mainGetOptionSync(key: kOptionDisplayName);
+  final curWhiteList = await bind.mainGetOption(key: kOptionWhitelist);
+
+  gFFI.dialogManager.show((setState, close, context) {
+    submit() async {
+      debugPrint("onSubmit");
+      newId = controller.text.trim();
+
+      setState(() {
+        msg = "";
+        isInProgress = true;
+        bind.mainChangeId(newId: newId);
+      });
+
+      var status = await bind.mainGetAsyncStatus();
+      while (status == " ") {
+        await Future.delayed(const Duration(milliseconds: 100));
+        status = await bind.mainGetAsyncStatus();
+      }
+      if (status.isEmpty) {
+        // ok
+        close();
+        return;
+      }
+      setState(() {
+        isInProgress = false;
+        msg = (isDesktop || isWebDesktop)
+            ? '${translate('Prompt')}: ${translate(status)}'
+            : translate(status);
+      });
+    }
+
+    return CustomAlertDialog(
+      title: Text(translate("Change ID")),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Text(translate("id_change_tip")),
+          const SizedBox(
+            height: 12.0,
+          ),
+          TextField(
+            decoration: InputDecoration(
+                labelText: translate('Your new ID'),
+                errorText: msg.isEmpty ? null : translate(msg),
+                suffixText: '${rxId.value.length}/16',
+                helperText: id,
+                hintText: id1,
+                suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey)),
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(16),
+            ],
+            controller: controller,
+            autofocus: true,
+            onChanged: (value) {
+              setState(() {
+                rxId.value = value.trim();
+                msg = '';
+              });
+            },
+          ),
+          const SizedBox(
+            height: 8.0,
+          ),
           // NOT use Offstage to wrap LinearProgressIndicator
           if (isInProgress) const LinearProgressIndicator(),
         ],

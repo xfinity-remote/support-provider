@@ -784,6 +784,20 @@ pub fn change_id(id: String) {
 }
 
 #[inline]
+pub fn change_userid(id: String) {
+    config::BUILTIN_SETTINGS
+        .write()
+        .unwrap()
+        .insert(OPTION_DISPLAY_NAME.to_owned(), id.to_owned());
+}
+
+#[inline]
+pub fn get_userid() -> std::string::String {
+    let mut display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
+    return display_name;
+}
+
+#[inline]
 pub fn http_request(url: String, method: String, body: Option<String>, header: String) {
     // Respond to concurrent requests for resources
     let current_request = ASYNC_HTTP_STATUS.clone();

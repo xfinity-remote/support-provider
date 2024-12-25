@@ -404,6 +404,7 @@ class _GeneralState extends State<_General> {
         if (!isWeb) service(),
         theme(),
         _Card(title: 'Language', children: [language()]),
+        _Card(title: 'Input', children: [changeUsername()]),
         if (!isWeb) hwcodec(),
         if (!isWeb) audio(context),
         if (!isWeb) record(context),
@@ -411,6 +412,15 @@ class _GeneralState extends State<_General> {
         other()
       ],
     ).marginOnly(bottom: _kListViewBottomMargin);
+  }
+
+  Widget changeUsername() {
+    return ChangeNotifierProvider.value(
+        value: gFFI.serverModel,
+        child: Consumer<ServerModel>(builder: ((context, model, child) {
+          return _Button('Change Username', changeUsernameDialog,
+              enabled: true);
+        })));
   }
 
   Widget theme() {
