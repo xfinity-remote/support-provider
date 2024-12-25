@@ -15,11 +15,8 @@ import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../common.dart';
-import '../../consts.dart';
 import '../../models/model.dart';
 import '../../models/platform_model.dart';
-import '../../models/server_model.dart';
-import '../formatter/id_formatter.dart';
 import 'address_book.dart';
 
 void clientClose(SessionID sessionId, OverlayDialogManager dialogManager) {
@@ -181,18 +178,18 @@ void changeIdDialog() {
   });
 }
 
-
 Future<void> changeUsernameDialog() async {
   var newId = "";
   var msg = "";
   var isInProgress = false;
+  TextEditingController controller = TextEditingController();
+  final RxString rxId = controller.text.trim().obs;
 
   // await bind.mainSetOption(
   //     key: kOptionDisplayName, value: "defaultOptionWhitelist");
-  final ac = kLoginDialogTag;
   final test1 = await bind.mainGetLocalOption(key: kOptionDisplayName);
   final vgh = await bind.mainGetOptionSync(key: kOptionDisplayName);
-  final curWhiteList = await bind.mainGetOption(key: kOptionWhitelist);
+  final displayName = await bind.mainGetOption(key: kOptionDisplayName);
 
   gFFI.dialogManager.show((setState, close, context) {
     submit() async {
@@ -237,8 +234,8 @@ Future<void> changeUsernameDialog() async {
                 labelText: translate('Your new ID'),
                 errorText: msg.isEmpty ? null : translate(msg),
                 suffixText: '${rxId.value.length}/16',
-                helperText: id,
-                hintText: id1,
+                helperText: displayName,
+                hintText: displayName,
                 suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey)),
             inputFormatters: [
               LengthLimitingTextInputFormatter(16),

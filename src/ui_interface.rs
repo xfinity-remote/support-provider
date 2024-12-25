@@ -792,9 +792,9 @@ pub fn change_userid(id: String) {
 }
 
 #[inline]
-pub fn get_userid() -> std::string::String {
-    let mut display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
-    return display_name;
+pub fn get_userid() -> String {
+    let display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
+    display_name // Return the display name directly
 }
 
 #[inline]
