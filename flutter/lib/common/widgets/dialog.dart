@@ -185,11 +185,7 @@ Future<void> changeUsernameDialog() async {
   TextEditingController controller = TextEditingController();
   final RxString rxId = controller.text.trim().obs;
 
-  // await bind.mainSetOption(
-  //     key: kOptionDisplayName, value: "defaultOptionWhitelist");
-  final test1 = await bind.mainGetLocalOption(key: kOptionDisplayName);
-  final vgh = await bind.mainGetOptionSync(key: kOptionDisplayName);
-  final displayName = await bind.mainGetOption(key: kOptionDisplayName);
+  var display_name = await bind.mainGetUserid();
 
   gFFI.dialogManager.show((setState, close, context) {
     submit() async {
@@ -199,7 +195,7 @@ Future<void> changeUsernameDialog() async {
       setState(() {
         msg = "";
         isInProgress = true;
-        bind.mainChangeId(newId: newId);
+        bind.mainChangeUserid(newId: newId);
       });
 
       var status = await bind.mainGetAsyncStatus();
@@ -234,8 +230,8 @@ Future<void> changeUsernameDialog() async {
                 labelText: translate('Your new ID'),
                 errorText: msg.isEmpty ? null : translate(msg),
                 suffixText: '${rxId.value.length}/16',
-                helperText: displayName,
-                hintText: displayName,
+                helperText: display_name,
+                hintText: "userluna",
                 suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey)),
             inputFormatters: [
               LengthLimitingTextInputFormatter(16),
