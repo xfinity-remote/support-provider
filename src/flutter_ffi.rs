@@ -803,12 +803,12 @@ pub fn main_change_id(new_id: String) {
     change_id(new_id)
 }
 
-pub fn main_change_userid(new_id: String) {
-    change_userid(new_id)
+pub fn main_change_username(new_id: String) {
+    change_username(new_id)
 }
 
-pub fn main_get_userid() -> String {
-    let user_id = get_userid();
+pub fn main_get_username() -> String {
+    let user_id = get_username();
     user_id
 }
 pub fn main_get_async_status() -> String {

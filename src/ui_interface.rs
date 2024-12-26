@@ -784,7 +784,7 @@ pub fn change_id(id: String) {
 }
 
 #[inline]
-pub fn change_userid(id: String) {
+pub fn change_username(id: String) {
     config::BUILTIN_SETTINGS
         .write()
         .unwrap()
@@ -792,7 +792,7 @@ pub fn change_userid(id: String) {
 }
 
 #[inline]
-pub fn get_userid() -> String {
+pub fn get_username() -> String {
     let mut display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
     if display_name.is_empty() {
         display_name =

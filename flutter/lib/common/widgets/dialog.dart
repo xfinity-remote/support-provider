@@ -197,7 +197,7 @@ Future<void> changeUsernameDialog() async {
       setState(() async {
         msg = "";
         isInProgress = true;
-        bind.mainChangeUserid(newId: newId);
+        bind.mainChangeUsername(newId: newId);
         await bind.mainSetOption(key: kOptionDisplayName, value: newId);
       });
 
@@ -231,7 +231,6 @@ Future<void> changeUsernameDialog() async {
                 labelText: translate('Your new Username'),
                 errorText: msg.isEmpty ? null : translate(msg),
                 suffixText: '${rxId.value.length}/16',
-                helperText: "Format: 'userluna'",
                 hintText: "Enter Your Username",
                 suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey)),
             inputFormatters: [
@@ -249,7 +248,6 @@ Future<void> changeUsernameDialog() async {
           const SizedBox(
             height: 8.0,
           ),
-          // NOT use Offstage to wrap LinearProgressIndicator
           if (isInProgress) const LinearProgressIndicator(),
         ],
       ),
