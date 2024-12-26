@@ -221,7 +221,7 @@ Future<void> changeUsernameDialog() async {
 
     return CustomAlertDialog(
       // title: Text(translate("Change ID")),
-      title: Text("Change Your Username"),
+      title: Text(translate("Change Your Username")),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
