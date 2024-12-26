@@ -404,7 +404,7 @@ class _GeneralState extends State<_General> {
         if (!isWeb) service(),
         theme(),
         _Card(title: 'Language', children: [language()]),
-        _Card(title: 'Input', children: [changeUsername()]),
+        _Card(title: 'Username', children: [changeUsername()]),
         if (!isWeb) hwcodec(),
         if (!isWeb) audio(context),
         if (!isWeb) record(context),

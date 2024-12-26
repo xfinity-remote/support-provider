@@ -614,6 +614,15 @@ extension ParseToString on ThemeMode {
   }
 }
 
+Future<String> fetchDisplayName() async {
+  var display_name = await bind.mainGetUserid();
+  if (display_name.isEmpty) {
+    display_name = await bind.mainGetOption(key: kOptionDisplayName);
+    await bind.mainChangeUserid(newId: display_name);
+  }
+  return display_name;
+}
+
 final ButtonStyle flatButtonStyle = TextButton.styleFrom(
   minimumSize: Size(0, 36),
   padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),

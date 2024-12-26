@@ -185,17 +185,20 @@ Future<void> changeUsernameDialog() async {
   TextEditingController controller = TextEditingController();
   final RxString rxId = controller.text.trim().obs;
 
-  var display_name = await bind.mainGetUserid();
+  final display_name = await fetchDisplayName();
+  controller.text = display_name;
+  rxId.value = display_name.trim();
 
   gFFI.dialogManager.show((setState, close, context) {
     submit() async {
       debugPrint("onSubmit");
       newId = controller.text.trim();
 
-      setState(() {
+      setState(() async {
         msg = "";
         isInProgress = true;
         bind.mainChangeUserid(newId: newId);
+        await bind.mainSetOption(key: kOptionDisplayName, value: newId);
       });
 
       var status = await bind.mainGetAsyncStatus();
@@ -217,7 +220,8 @@ Future<void> changeUsernameDialog() async {
     }
 
     return CustomAlertDialog(
-      title: Text(translate("Change ID")),
+      // title: Text(translate("Change ID")),
+      title: Text("Change Your Username"),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -227,11 +231,12 @@ Future<void> changeUsernameDialog() async {
           ),
           TextField(
             decoration: InputDecoration(
-                labelText: translate('Your new ID'),
+                // labelText: translate('Your new ID'),
+                labelText: translate('Your new Username'),
                 errorText: msg.isEmpty ? null : translate(msg),
                 suffixText: '${rxId.value.length}/16',
-                helperText: display_name,
-                hintText: "userluna",
+                helperText: "Format: 'userluna'",
+                hintText: "Enter Your Username",
                 suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey)),
             inputFormatters: [
               LengthLimitingTextInputFormatter(16),
