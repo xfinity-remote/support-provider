@@ -793,7 +793,21 @@ pub fn change_userid(id: String) {
 
 #[inline]
 pub fn get_userid() -> String {
-    let display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
+    let mut display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
+    if display_name.is_empty() {
+        display_name =
+            serde_json::from_str::<serde_json::Value>(&LocalConfig::get_option("user_info"))
+                .map(|x| {
+                    x.get("name")
+                        .map(|x| x.as_str().unwrap_or_default())
+                        .unwrap_or_default()
+                        .to_owned()
+                })
+                .unwrap_or_default();
+    }
+    if display_name.is_empty() {
+        display_name = crate::username();
+    }
     display_name // Return the display name directly
 }
 

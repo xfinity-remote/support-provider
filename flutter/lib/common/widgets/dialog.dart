@@ -207,7 +207,6 @@ Future<void> changeUsernameDialog() async {
         status = await bind.mainGetAsyncStatus();
       }
       if (status.isEmpty) {
-        // ok
         close();
         return;
       }
@@ -220,18 +219,15 @@ Future<void> changeUsernameDialog() async {
     }
 
     return CustomAlertDialog(
-      // title: Text(translate("Change ID")),
       title: Text(translate("Change Your Username")),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Text(translate("id_change_tip")),
           const SizedBox(
             height: 12.0,
           ),
           TextField(
             decoration: InputDecoration(
-                // labelText: translate('Your new ID'),
                 labelText: translate('Your new Username'),
                 errorText: msg.isEmpty ? null : translate(msg),
                 suffixText: '${rxId.value.length}/16',

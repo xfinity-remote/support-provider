@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_hbb/common/widgets/connection_page_title.dart';
 import 'package:flutter_hbb/consts.dart';
+import 'package:flutter_hbb/desktop/pages/desktop_setting_page.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -283,7 +284,16 @@ class _ConnectionPageState extends State<ConnectionPage>
           children: [
             Row(
               children: [
-                Flexible(child: _buildRemoteIDTextField(context)),
+                Flexible(
+                  child: _buildRemoteIDTextField(context),
+                ),
+              ],
+            ).marginOnly(top: 22),
+            Row(
+              children: [
+                Flexible(
+                  child: _buildUsernamefield(context),
+                ),
               ],
             ).marginOnly(top: 22),
             SizedBox(height: 12),
@@ -518,5 +528,81 @@ class _ConnectionPageState extends State<ConnectionPage>
     );
     return Container(
         constraints: const BoxConstraints(maxWidth: 600), child: w);
+  }
+
+  Widget _buildUsernamefield(BuildContext context) {
+    return FutureBuilder<String>(
+      future: fetchDisplayName(), // Your async function
+      builder: (context, snapshot) {
+        String displayName =
+            snapshot.data ?? "Loading..."; // Default text during loading
+
+        return Container(
+          width: 360, // Adjust the width as necessary
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(13)),
+            border: Border.all(color: Theme.of(context).colorScheme.background),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Username",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      style: const TextStyle(
+                        fontFamily: 'WorkSans',
+                        fontSize: 22,
+                        height: 1.4,
+                      ),
+                      maxLines: 1,
+                      cursorColor:
+                          Theme.of(context).textTheme.titleLarge?.color,
+                      decoration: const InputDecoration(
+                        filled: false,
+                        counterText: '',
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+                      ),
+                      controller: TextEditingController(text: displayName),
+                      readOnly: true,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 8.0), // Add padding to the left of the icon
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors
+                          .click, // Change cursor to pointer on hover
+                      child: GestureDetector(
+                        onTap: () {
+                          DesktopSettingPage.switch2page(
+                              SettingsTabKey.general);
+                        },
+                        child: Icon(
+                          Icons.edit,
+                          color: Theme.of(context).primaryColorLight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

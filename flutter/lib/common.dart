@@ -615,11 +615,12 @@ extension ParseToString on ThemeMode {
 }
 
 Future<String> fetchDisplayName() async {
-  var display_name = await bind.mainGetUserid();
+  var display_name = await bind.mainGetOption(key: kOptionDisplayName);
   if (display_name.isEmpty) {
-    display_name = await bind.mainGetOption(key: kOptionDisplayName);
-    await bind.mainChangeUserid(newId: display_name);
+    display_name = await bind.mainGetUserid();
+    await bind.mainSetOption(key: kOptionDisplayName, value: display_name);
   }
+  await bind.mainChangeUserid(newId: display_name);
   return display_name;
 }
 
