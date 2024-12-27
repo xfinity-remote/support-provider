@@ -285,14 +285,14 @@ class _ConnectionPageState extends State<ConnectionPage>
             Row(
               children: [
                 Flexible(
-                  child: _buildRemoteIDTextField(context),
+                  child: _buildUsernamefield(context),
                 ),
               ],
             ).marginOnly(top: 22),
             Row(
               children: [
                 Flexible(
-                  child: _buildUsernamefield(context),
+                  child: _buildRemoteIDTextField(context),
                 ),
               ],
             ).marginOnly(top: 22),
