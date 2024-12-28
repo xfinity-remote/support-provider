@@ -178,6 +178,89 @@ void changeIdDialog() {
   });
 }
 
+Future<void> changeUsernameDialog() async {
+  var newId = "";
+  var msg = "";
+  var isInProgress = false;
+  TextEditingController controller = TextEditingController();
+  final RxString rxId = controller.text.trim().obs;
+
+  final display_name = await fetchDisplayName();
+  controller.text = display_name;
+  rxId.value = display_name.trim();
+
+  gFFI.dialogManager.show((setState, close, context) {
+    submit() async {
+      debugPrint("onSubmit");
+      newId = controller.text.trim();
+
+      setState(() async {
+        msg = "";
+        isInProgress = true;
+        bind.mainChangeUsername(newId: newId);
+        await bind.mainSetOption(key: kOptionDisplayName, value: newId);
+      });
+
+      var status = await bind.mainGetAsyncStatus();
+      while (status == " ") {
+        await Future.delayed(const Duration(milliseconds: 100));
+        status = await bind.mainGetAsyncStatus();
+      }
+      if (status.isEmpty) {
+        close();
+        return;
+      }
+      setState(() {
+        isInProgress = false;
+        msg = (isDesktop || isWebDesktop)
+            ? '${translate('Prompt')}: ${translate(status)}'
+            : translate(status);
+      });
+    }
+
+    return CustomAlertDialog(
+      title: Text(translate("Change Your Username")),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 12.0,
+          ),
+          TextField(
+            decoration: InputDecoration(
+                labelText: translate('Your new Username'),
+                errorText: msg.isEmpty ? null : translate(msg),
+                suffixText: '${rxId.value.length}/16',
+                hintText: "Enter Your Username",
+                suffixStyle: const TextStyle(fontSize: 12, color: Colors.grey)),
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(16),
+            ],
+            controller: controller,
+            autofocus: true,
+            onChanged: (value) {
+              setState(() {
+                rxId.value = value.trim();
+                msg = '';
+              });
+            },
+          ),
+          const SizedBox(
+            height: 8.0,
+          ),
+          if (isInProgress) const LinearProgressIndicator(),
+        ],
+      ),
+      actions: [
+        dialogButton("Cancel", onPressed: close, isOutline: true),
+        dialogButton("OK", onPressed: submit),
+      ],
+      onSubmit: submit,
+      onCancel: close,
+    );
+  });
+}
+
 void changeWhiteList({Function()? callback}) async {
   final curWhiteList = await bind.mainGetOption(key: kOptionWhitelist);
   var newWhiteListField = curWhiteList == defaultOptionWhitelist
