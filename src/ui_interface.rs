@@ -784,6 +784,34 @@ pub fn change_id(id: String) {
 }
 
 #[inline]
+pub fn change_username(id: String) {
+    config::BUILTIN_SETTINGS
+        .write()
+        .unwrap()
+        .insert(OPTION_DISPLAY_NAME.to_owned(), id.to_owned());
+}
+
+#[inline]
+pub fn get_username() -> String {
+    let mut display_name = get_builtin_option(config::keys::OPTION_DISPLAY_NAME);
+    if display_name.is_empty() {
+        display_name =
+            serde_json::from_str::<serde_json::Value>(&LocalConfig::get_option("user_info"))
+                .map(|x| {
+                    x.get("name")
+                        .map(|x| x.as_str().unwrap_or_default())
+                        .unwrap_or_default()
+                        .to_owned()
+                })
+                .unwrap_or_default();
+    }
+    if display_name.is_empty() {
+        display_name = crate::username();
+    }
+    display_name // Return the display name directly
+}
+
+#[inline]
 pub fn http_request(url: String, method: String, body: Option<String>, header: String) {
     // Respond to concurrent requests for resources
     let current_request = ASYNC_HTTP_STATUS.clone();

@@ -655,6 +655,8 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Clipboard is synchronized", "Portapapeles sincronizado"),
         ("Update client clipboard", "Actualizar portapapeles del cliente"),
         ("Untagged", ""),
+        ("Change Your Username", "Cambia tu nombre de usuario"),
+        ("Your new Username", "Tu nuevo nombre de usuario"),
         ("new-version-of-{}-tip", ""),
     ].iter().cloned().collect();
 }
