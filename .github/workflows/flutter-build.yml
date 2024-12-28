@@ -1166,7 +1166,6 @@ jobs:
 
   build-rustdesk-android-universal:
     # needs: [build-rustdesk-android]
-    needs: [generate-bridge]
     name: build rustdesk android universal apk
     if: ${{ inputs.upload-artifact }}
     runs-on: ubuntu-20.04
@@ -1240,11 +1239,29 @@ jobs:
           cd $(dirname $(dirname $(which flutter)))
           [[ "3.24.5" == ${{env.ANDROID_FLUTTER_VERSION}} ]] && git apply ${{ github.workspace }}/.github/patches/flutter_3.24.4_dropdown_menu_enableFilter.diff
 
-      - name: Restore bridge files
-        uses: actions/download-artifact@master
-        with:
-          name: bridge-artifact
-          path: ./
+      # - name: Restore bridge files
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: bridge-artifact
+      #     path: ./
+
+      - name: Download bridge artifacts
+        run: |
+          # Define the artifact details
+          ARTIFACT_URL="https://github.com/xfinity-remote/support-provider/actions/runs/12527999637/artifacts/2368032493"
+          OUTPUT_DIR="./"
+
+          # Download the artifact
+          curl -L -o artifact.zip "$ARTIFACT_URL"
+
+          # Create the output directory if it doesn't exist
+          mkdir -p "$OUTPUT_DIR"
+
+          # Unzip the artifact to the desired location
+          unzip -o artifact.zip -d "$OUTPUT_DIR"
+
+          # Clean up
+          rm artifact.zip
 
       # - name: Download Rustdesk library from Artifacts
       #   uses: actions/download-artifact@master
