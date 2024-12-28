@@ -1247,17 +1247,21 @@ jobs:
 
       - name: Download bridge artifacts
         run: |
-          # Define the artifact details
-          ARTIFACT_URL="https://github.com/xfinity-remote/support-provider/actions/runs/12527999637/artifacts/2368032493"
+          # Set variables
+          ARTIFACT_ID="2368032493"
           OUTPUT_DIR="./"
 
-          # Download the artifact
-          curl -L -o artifact.zip "$ARTIFACT_URL"
+          # Download the artifact using the API
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/xfinity-remote/support-provider/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o artifact.zip
 
           # Create the output directory if it doesn't exist
           mkdir -p "$OUTPUT_DIR"
 
-          # Unzip the artifact to the desired location
+          # Unzip the artifact
           unzip -o artifact.zip -d "$OUTPUT_DIR"
 
           # Clean up
@@ -1272,11 +1276,15 @@ jobs:
       - name: Download Rustdesk library from specific workflow run
         run: |
           # Define the artifact details
-          ARTIFACT_URL="https://github.com/xfinity-remote/support-provider/actions/runs/12527999637/artifacts/2368046243"
+          ARTIFACT_ID="2368046243"
           OUTPUT_DIR="./flutter/android/app/src/main/jniLibs/arm64-v8a"
 
           # Download the artifact
-          curl -L -o artifact.zip "$ARTIFACT_URL"
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/xfinity-remote/support-provider/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o artifact.zip
 
           # Create the output directory if it doesn't exist
           mkdir -p "$OUTPUT_DIR"
@@ -1297,11 +1305,15 @@ jobs:
       - name: Download Rustdesk library from specific workflow run
         run: |
           # Define the artifact details
-          ARTIFACT_URL="https://github.com/xfinity-remote/support-provider/actions/runs/12527999637/artifacts/2368044955"
+          ARTIFACT_ID="2368044955"
           OUTPUT_DIR="./flutter/android/app/src/main/jniLibs/armeabi-v7a"
 
           # Download the artifact
-          curl -L -o artifact.zip "$ARTIFACT_URL"
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/xfinity-remote/support-provider/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o artifact.zip
 
           # Create the output directory if it doesn't exist
           mkdir -p "$OUTPUT_DIR"
@@ -1321,11 +1333,15 @@ jobs:
       - name: Download Rustdesk library from specific workflow run
         run: |
           # Define the artifact details
-          ARTIFACT_URL="https://github.com/xfinity-remote/support-provider/actions/runs/12527999637/artifacts/2368045805"
+          ARTIFACT_ID="2368045805"
           OUTPUT_DIR="./flutter/android/app/src/main/jniLibs/x86_64"
 
           # Download the artifact
-          curl -L -o artifact.zip "$ARTIFACT_URL"
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/xfinity-remote/support-provider/actions/artifacts/$ARTIFACT_ID/zip" \
+            -o artifact.zip
 
           # Create the output directory if it doesn't exist
           mkdir -p "$OUTPUT_DIR"
