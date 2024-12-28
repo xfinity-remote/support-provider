@@ -808,8 +808,8 @@ pub fn main_change_username(new_id: String) {
 }
 
 pub fn main_get_username() -> String {
-    let user_id = get_username();
-    user_id
+    let user_name = get_username();
+    user_name
 }
 pub fn main_get_async_status() -> String {
     get_async_job_status()
