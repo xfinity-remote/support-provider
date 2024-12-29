@@ -107,7 +107,7 @@ pub fn global_init() -> bool {
             crate::server::wayland::init();
         }
     }
-    enable_provider_mode();
+    // enable_provider_mode();
     true
 }
 
@@ -845,6 +845,7 @@ async fn check_software_update_() -> hbb_common::ResultType<()> {
 
 #[inline]
 pub fn get_app_name() -> String {
+    enable_provider_mode();
     hbb_common::config::APP_NAME.read().unwrap().clone()
 }
 
