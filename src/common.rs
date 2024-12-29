@@ -1458,7 +1458,6 @@ pub fn get_dst_align_rgba() -> usize {
     1
 }
 
-#[inline]
 pub fn enable_provider_mode(){
     config::HARD_SETTINGS.write().unwrap().insert("conn-type".to_owned(), "outgoing".to_owned());
 }

@@ -2094,22 +2094,20 @@ fn is_option_can_save(
 
 #[inline]
 pub fn is_incoming_only() -> bool {
-    false
-    // HARD_SETTINGS
-    //     .read()
-    //     .unwrap()
-    //     .get("conn-type")
-    //     .map_or(false, |x| x == ("incoming"))
+    HARD_SETTINGS
+        .read()
+        .unwrap()
+        .get("conn-type")
+        .map_or(false, |x| x == ("incoming"))
 }
 
 #[inline]
 pub fn is_outgoing_only() -> bool {
-    true
-    // HARD_SETTINGS
-    //     .read()
-    //     .unwrap()
-    //     .get("conn-type")
-    //     .map_or(false, |x| x == ("outgoing"))
+    HARD_SETTINGS
+        .read()
+        .unwrap()
+        .get("conn-type")
+        .map_or(false, |x| x == ("outgoing"))
 }
 
 #[inline]
