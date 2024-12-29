@@ -107,7 +107,6 @@ pub fn global_init() -> bool {
             crate::server::wayland::init();
         }
     }
-    // enable_provider_mode();
     true
 }
 
@@ -845,7 +844,6 @@ async fn check_software_update_() -> hbb_common::ResultType<()> {
 
 #[inline]
 pub fn get_app_name() -> String {
-    enable_provider_mode();
     hbb_common::config::APP_NAME.read().unwrap().clone()
 }
 
@@ -1460,6 +1458,7 @@ pub fn get_dst_align_rgba() -> usize {
     1
 }
 
+#[inline]
 pub fn enable_provider_mode(){
     config::HARD_SETTINGS.write().unwrap().insert("conn-type".to_owned(), "outgoing".to_owned());
 }
