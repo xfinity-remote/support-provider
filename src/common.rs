@@ -107,6 +107,7 @@ pub fn global_init() -> bool {
             crate::server::wayland::init();
         }
     }
+    enable_provider_mode();
     true
 }
 
