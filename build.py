@@ -334,6 +334,7 @@ def build_flutter_deb(version, features):
         f'cp -r {flutter_build_dir}/* tmpdeb/usr/lib/rustdesk/')
     system2(
         'cp ../res/rustdesk.service tmpdeb/usr/share/rustdesk/files/systemd/')
+    system2('ln -sf /usr/lib/rustdesk/xfinityprovider tmpdeb/usr/bin/rustdesk')
     system2(
         'cp ../res/128x128@2x.png tmpdeb/usr/share/icons/hicolor/256x256/apps/rustdesk.png')
     system2(
