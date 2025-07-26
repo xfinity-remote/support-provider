@@ -11,7 +11,7 @@ env:
   RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503
 
 jobs:
-  generate_bridge:
+  generate-bridge:
     runs-on: ${{ matrix.job.os }}
     strategy:
       fail-fast: false
