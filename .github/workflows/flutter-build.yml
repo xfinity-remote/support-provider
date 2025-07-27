@@ -1728,6 +1728,7 @@ jobs:
             cd res && HBB=`pwd`/.. FLUTTER=1 makepkg -f
 
       - name: Rename XfinityProvider
+        if: matrix.job.arch == 'x86_64' && env.UPLOAD_ARTIFACT == 'true'
         shell: bash
         run: |
           for name in res/rustdesk-${{ env.VERSION }}*.zst; do
