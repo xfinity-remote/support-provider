@@ -1649,6 +1649,8 @@ jobs:
             export CARGO_INCREMENTAL=0
             export DEB_ARCH=${{ matrix.job.deb_arch }}
             python3 ./build.py --flutter --skip-cargo
+            echo "Listing files for flutter..."
+            ls -a
             for name in rustdesk*??.deb; do
               mv "$name" "${name%%.deb}-${{ matrix.job.arch }}.deb"
             done
@@ -1663,6 +1665,8 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
+            echo "Listing files for rpm"
+            ls -a
             for name in rustdesk*??.rpm; do
                 mv "$name" /workspace/"${name%%.rpm}.rpm"
             done
@@ -1677,16 +1681,20 @@ jobs:
             esac
             HBB=`pwd` rpmbuild ./res/rpm-flutter-suse.spec -bb
             pushd ~/rpmbuild/RPMS/${{ matrix.job.arch }}
+            echo "Listing files for suse"
+            ls -a
             for name in rustdesk*??.rpm; do
                 mv "$name" /workspace/"${name%%.rpm}-suse.rpm"
             done
 
             echo -e "Renaming rustdesk*.deb to XfinityProvider*.deb"
+            ls /workspace
             for name in /workspace/rustdesk*.deb; do
                 mv "$name" "${name/rustdesk/XfinityProvider}"
             done
 
             echo -e "Renaming rustdesk*.rpm to XfinityProvider*.deb"
+            ls /workspace
             for name in /workspace/rustdesk*.rpm; do
                 mv "$name" "${name/rustdesk/XfinityProvider}"
             done
@@ -1942,7 +1950,7 @@ jobs:
         run: |
           echo "Before rename"
           ls -a 
-          for name in rustdesk*??.deb; do
+          for name in XfinityProvider*??.deb; do
               # use cp to duplicate deb files to fit other packages.
               cp "$name" "${name%%.deb}-${{ matrix.job.arch }}-sciter.deb"
           done
