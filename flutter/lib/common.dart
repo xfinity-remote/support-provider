@@ -29,8 +29,11 @@ import '../consts.dart';
 import 'common/widgets/overlay.dart';
 import 'mobile/pages/file_manager_page.dart';
 import 'mobile/pages/remote_page.dart';
+import 'mobile/pages/view_camera_page.dart';
+import 'mobile/pages/terminal_page.dart';
 import 'desktop/pages/remote_page.dart' as desktop_remote;
 import 'desktop/pages/file_manager_page.dart' as desktop_file_manager;
+import 'desktop/pages/view_camera_page.dart' as desktop_view_camera;
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
 import 'models/model.dart';
 import 'models/platform_model.dart';
@@ -96,6 +99,8 @@ enum DesktopType {
   main,
   remote,
   fileTransfer,
+  viewCamera,
+  terminal,
   cm,
   portForward,
 }
@@ -103,6 +108,10 @@ enum DesktopType {
 class IconFont {
   static const _family1 = 'Tabbar';
   static const _family2 = 'PeerSearchbar';
+  static const _family3 = 'AddressBook';
+  static const _family4 = 'DeviceGroup';
+  static const _family5 = 'More';
+
   IconFont._();
 
   static const IconData max = IconData(0xe606, fontFamily: _family1);
@@ -113,8 +122,12 @@ class IconFont {
   static const IconData menu = IconData(0xe628, fontFamily: _family1);
   static const IconData search = IconData(0xe6a4, fontFamily: _family2);
   static const IconData roundClose = IconData(0xe6ed, fontFamily: _family2);
-  static const IconData addressBook =
-      IconData(0xe602, fontFamily: "AddressBook");
+  static const IconData addressBook = IconData(0xe602, fontFamily: _family3);
+  static const IconData deviceGroupOutline =
+      IconData(0xe623, fontFamily: _family4);
+  static const IconData deviceGroupFill =
+      IconData(0xe748, fontFamily: _family4);
+  static const IconData more = IconData(0xe609, fontFamily: _family5);
 }
 
 class ColorThemeExtension extends ThemeExtension<ColorThemeExtension> {
@@ -827,7 +840,11 @@ class OverlayDialogManager {
 
     close([res]) {
       _dialogs.remove(dialogTag);
-      dialog.complete(res);
+      try {
+        dialog.complete(res);
+      } catch (e) {
+        debugPrint("Dialog complete catch error: $e");
+      }
       BackButtonInterceptor.removeByName(dialogTag);
     }
 
@@ -1147,15 +1164,23 @@ Widget createDialogContent(String text) {
 
 void msgBox(SessionID sessionId, String type, String title, String text,
     String link, OverlayDialogManager dialogManager,
-    {bool? hasCancel, ReconnectHandle? reconnect, int? reconnectTimeout}) {
+    {bool? hasCancel,
+    ReconnectHandle? reconnect,
+    int? reconnectTimeout,
+    VoidCallback? onSubmit,
+    int? submitTimeout}) {
   dialogManager.dismissAll();
   List<Widget> buttons = [];
   bool hasOk = false;
   submit() {
     dialogManager.dismissAll();
-    // https://github.com/rustdesk/rustdesk/blob/5e9a31340b899822090a3731769ae79c6bf5f3e5/src/ui/common.tis#L263
-    if (!type.contains("custom") && desktopType != DesktopType.portForward) {
-      closeConnection();
+    if (onSubmit != null) {
+      onSubmit.call();
+    } else {
+      // https://github.com/rustdesk/rustdesk/blob/5e9a31340b899822090a3731769ae79c6bf5f3e5/src/ui/common.tis#L263
+      if (!type.contains("custom") && desktopType != DesktopType.portForward) {
+        closeConnection();
+      }
     }
   }
 
@@ -1171,7 +1196,18 @@ void msgBox(SessionID sessionId, String type, String title, String text,
 
   if (type != "connecting" && type != "success" && !type.contains("nook")) {
     hasOk = true;
-    buttons.insert(0, dialogButton('OK', onPressed: submit));
+    late final Widget btn;
+    if (submitTimeout != null) {
+      btn = _CountDownButton(
+        text: 'OK',
+        second: submitTimeout,
+        onPressed: submit,
+        submitOnTimeout: true,
+      );
+    } else {
+      btn = dialogButton('OK', onPressed: submit);
+    }
+    buttons.insert(0, btn);
   }
   hasCancel ??= !type.contains("error") &&
       !type.contains("nocancel") &&
@@ -1192,7 +1228,8 @@ void msgBox(SessionID sessionId, String type, String title, String text,
       reconnectTimeout != null) {
     // `enabled` is used to disable the dialog button once the button is clicked.
     final enabled = true.obs;
-    final button = Obx(() => _ReconnectCountDownButton(
+    final button = Obx(() => _CountDownButton(
+          text: 'Reconnect',
           second: reconnectTimeout,
           onPressed: enabled.isTrue
               ? () {
@@ -1546,7 +1583,9 @@ bool option2bool(String option, String value) {
 
 String bool2option(String option, bool b) {
   String res;
-  if (option.startsWith('enable-')) {
+  if (option.startsWith('enable-') &&
+      option != kOptionEnableUdpPunch &&
+      option != kOptionEnableIpv6Punch) {
     res = b ? defaultOptionYes : 'N';
   } else if (option.startsWith('allow-') ||
       option == kOptionStopService ||
@@ -1554,7 +1593,9 @@ String bool2option(String option, bool b) {
       option == kOptionForceAlwaysRelay) {
     res = b ? 'Y' : defaultOptionNo;
   } else {
-    assert(false);
+    if (option != kOptionEnableUdpPunch && option != kOptionEnableIpv6Punch) {
+      assert(false);
+    }
     res = b ? 'Y' : 'N';
   }
   return res;
@@ -1751,7 +1792,8 @@ Future<void> saveWindowPosition(WindowType type, {int? windowId}) async {
   await bind.setLocalFlutterOption(
       k: windowFramePrefix + type.name, v: pos.toString());
 
-  if (type == WindowType.RemoteDesktop && windowId != null) {
+  if ((type == WindowType.RemoteDesktop || type == WindowType.ViewCamera) &&
+      windowId != null) {
     await _saveSessionWindowPosition(
         type, windowId, isMaximized, isFullscreen, pos);
   }
@@ -1902,7 +1944,9 @@ Future<bool> restoreWindowPosition(WindowType type,
   String? pos;
   // No need to check mainGetLocalBoolOptionSync(kOptionOpenNewConnInTabs)
   // Though "open in tabs" is true and the new window restore peer position, it's ok.
-  if (type == WindowType.RemoteDesktop && windowId != null && peerId != null) {
+  if ((type == WindowType.RemoteDesktop || type == WindowType.ViewCamera) &&
+      windowId != null &&
+      peerId != null) {
     final peerPos = bind.mainGetPeerFlutterOptionSync(
         id: peerId, k: windowFramePrefix + type.name);
     if (peerPos.isNotEmpty) {
@@ -1917,7 +1961,7 @@ Future<bool> restoreWindowPosition(WindowType type,
     debugPrint("no window position saved, ignoring position restoration");
     return false;
   }
-  if (type == WindowType.RemoteDesktop) {
+  if (type == WindowType.RemoteDesktop || type == WindowType.ViewCamera) {
     if (!isRemotePeerPos && windowId != null) {
       if (lpos.offsetWidth != null) {
         lpos.offsetWidth = lpos.offsetWidth! + windowId * kNewWindowOffset;
@@ -2086,8 +2130,14 @@ StreamSubscription? listenUniLinks({handleByFlutter = true}) {
 enum UriLinkType {
   remoteDesktop,
   fileTransfer,
+  viewCamera,
   portForward,
   rdp,
+  terminal,
+}
+
+setEnvTerminalAdmin() {
+  bind.mainSetEnv(key: 'IS_TERMINAL_ADMIN', value: 'Y');
 }
 
 // uri link handler
@@ -2137,6 +2187,11 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
         id = args[i + 1];
         i++;
         break;
+      case '--view-camera':
+        type = UriLinkType.viewCamera;
+        id = args[i + 1];
+        i++;
+        break;
       case '--port-forward':
         type = UriLinkType.portForward;
         id = args[i + 1];
@@ -2144,6 +2199,17 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
         break;
       case '--rdp':
         type = UriLinkType.rdp;
+        id = args[i + 1];
+        i++;
+        break;
+      case '--terminal':
+        type = UriLinkType.terminal;
+        id = args[i + 1];
+        i++;
+        break;
+      case '--terminal-admin':
+        setEnvTerminalAdmin();
+        type = UriLinkType.terminal;
         id = args[i + 1];
         i++;
         break;
@@ -2178,6 +2244,12 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
               password: password, forceRelay: forceRelay);
         });
         break;
+      case UriLinkType.viewCamera:
+        Future.delayed(Duration.zero, () {
+          rustDeskWinManager.newViewCamera(id!,
+              password: password, forceRelay: forceRelay);
+        });
+        break;
       case UriLinkType.portForward:
         Future.delayed(Duration.zero, () {
           rustDeskWinManager.newPortForward(id!, false,
@@ -2187,6 +2259,12 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
       case UriLinkType.rdp:
         Future.delayed(Duration.zero, () {
           rustDeskWinManager.newPortForward(id!, true,
+              password: password, forceRelay: forceRelay);
+        });
+        break;
+      case UriLinkType.terminal:
+        Future.delayed(Duration.zero, () {
+          rustDeskWinManager.newTerminal(id!,
               password: password, forceRelay: forceRelay);
         });
         break;
@@ -2201,7 +2279,16 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
 List<String>? urlLinkToCmdArgs(Uri uri) {
   String? command;
   String? id;
-  final options = ["connect", "play", "file-transfer", "port-forward", "rdp"];
+  final options = [
+    "connect",
+    "play",
+    "file-transfer",
+    "view-camera",
+    "port-forward",
+    "rdp",
+    "terminal",
+    "terminal-admin",
+  ];
   if (uri.authority.isEmpty &&
       uri.path.split('').every((char) => char == '/')) {
     return [];
@@ -2229,18 +2316,9 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
       }
     }
   } else if (options.contains(uri.authority)) {
-    final optionIndex = options.indexOf(uri.authority);
     command = '--${uri.authority}';
     if (uri.path.length > 1) {
       id = uri.path.substring(1);
-    }
-    if (isMobile && id != null) {
-      if (optionIndex == 0 || optionIndex == 1) {
-        connect(Get.context!, id);
-      } else if (optionIndex == 2) {
-        connect(Get.context!, id, isFileTransfer: true);
-      }
-      return null;
     }
   } else if (uri.authority.length > 2 &&
       (uri.path.length <= 1 ||
@@ -2265,12 +2343,29 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
     }
   }
 
-  if (isMobile) {
-    if (id != null) {
-      final forceRelay = queryParameters["relay"] != null;
-      connect(Get.context!, id, forceRelay: forceRelay);
-      return null;
+  if (isMobile && id != null) {
+    final forceRelay = queryParameters["relay"] != null;
+    final password = queryParameters["password"];
+
+    // Determine connection type based on command
+    if (command == '--file-transfer') {
+      connect(Get.context!, id,
+          isFileTransfer: true, forceRelay: forceRelay, password: password);
+    } else if (command == '--view-camera') {
+      connect(Get.context!, id,
+          isViewCamera: true, forceRelay: forceRelay, password: password);
+    } else if (command == '--terminal') {
+      connect(Get.context!, id,
+          isTerminal: true, forceRelay: forceRelay, password: password);
+    } else if (command == 'terminal-admin') {
+      setEnvTerminalAdmin();
+      connect(Get.context!, id,
+          isTerminal: true, forceRelay: forceRelay, password: password);
+    } else {
+      // Default to remote desktop for '--connect', '--play', or direct connection
+      connect(Get.context!, id, forceRelay: forceRelay, password: password);
     }
+    return null;
   }
 
   List<String> args = List.empty(growable: true);
@@ -2291,6 +2386,8 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
 
 connectMainDesktop(String id,
     {required bool isFileTransfer,
+    required bool isViewCamera,
+    required bool isTerminal,
     required bool isTcpTunneling,
     required bool isRDP,
     bool? forceRelay,
@@ -2303,8 +2400,20 @@ connectMainDesktop(String id,
         isSharedPassword: isSharedPassword,
         connToken: connToken,
         forceRelay: forceRelay);
+  } else if (isViewCamera) {
+    await rustDeskWinManager.newViewCamera(id,
+        password: password,
+        isSharedPassword: isSharedPassword,
+        connToken: connToken,
+        forceRelay: forceRelay);
   } else if (isTcpTunneling || isRDP) {
     await rustDeskWinManager.newPortForward(id, isRDP,
+        password: password,
+        isSharedPassword: isSharedPassword,
+        connToken: connToken,
+        forceRelay: forceRelay);
+  } else if (isTerminal) {
+    await rustDeskWinManager.newTerminal(id,
         password: password,
         isSharedPassword: isSharedPassword,
         connToken: connToken,
@@ -2319,10 +2428,13 @@ connectMainDesktop(String id,
 
 /// Connect to a peer with [id].
 /// If [isFileTransfer], starts a session only for file transfer.
+/// If [isViewCamera], starts a session only for view camera.
 /// If [isTcpTunneling], starts a session only for tcp tunneling.
 /// If [isRDP], starts a session only for rdp.
 connect(BuildContext context, String id,
     {bool isFileTransfer = false,
+    bool isViewCamera = false,
+    bool isTerminal = false,
     bool isTcpTunneling = false,
     bool isRDP = false,
     bool forceRelay = false,
@@ -2345,7 +2457,7 @@ connect(BuildContext context, String id,
   id = id.replaceAll(' ', '');
   final oldId = id;
   id = await bind.mainHandleRelayId(id: id);
-  final forceRelay2 = id != oldId || forceRelay;
+  forceRelay = id != oldId || forceRelay;
   assert(!(isFileTransfer && isTcpTunneling && isRDP),
       "more than one connect type");
 
@@ -2354,16 +2466,20 @@ connect(BuildContext context, String id,
       await connectMainDesktop(
         id,
         isFileTransfer: isFileTransfer,
+        isViewCamera: isViewCamera,
+        isTerminal: isTerminal,
         isTcpTunneling: isTcpTunneling,
         isRDP: isRDP,
         password: password,
         isSharedPassword: isSharedPassword,
-        forceRelay: forceRelay2,
+        forceRelay: forceRelay,
       );
     } else {
       await rustDeskWinManager.call(WindowType.Main, kWindowConnect, {
         'id': id,
         'isFileTransfer': isFileTransfer,
+        'isViewCamera': isViewCamera,
+        'isTerminal': isTerminal,
         'isTcpTunneling': isTcpTunneling,
         'isRDP': isRDP,
         'password': password,
@@ -2397,10 +2513,52 @@ connect(BuildContext context, String id,
           context,
           MaterialPageRoute(
             builder: (BuildContext context) => FileManagerPage(
-                id: id, password: password, isSharedPassword: isSharedPassword),
+                id: id,
+                password: password,
+                isSharedPassword: isSharedPassword,
+                forceRelay: forceRelay),
           ),
         );
       }
+    } else if (isViewCamera) {
+      if (isWeb) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) =>
+                desktop_view_camera.ViewCameraPage(
+              key: ValueKey(id),
+              id: id,
+              toolbarState: ToolbarState(),
+              password: password,
+              isSharedPassword: isSharedPassword,
+            ),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => ViewCameraPage(
+                id: id,
+                password: password,
+                isSharedPassword: isSharedPassword,
+                forceRelay: forceRelay),
+          ),
+        );
+      }
+    } else if (isTerminal) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => TerminalPage(
+            id: id,
+            password: password,
+            isSharedPassword: isSharedPassword,
+            forceRelay: forceRelay,
+          ),
+        ),
+      );
     } else {
       if (isWeb) {
         Navigator.push(
@@ -2411,7 +2569,6 @@ connect(BuildContext context, String id,
               id: id,
               toolbarState: ToolbarState(),
               password: password,
-              forceRelay: forceRelay,
               isSharedPassword: isSharedPassword,
             ),
           ),
@@ -2421,7 +2578,10 @@ connect(BuildContext context, String id,
           context,
           MaterialPageRoute(
             builder: (BuildContext context) => RemotePage(
-                id: id, password: password, isSharedPassword: isSharedPassword),
+                id: id,
+                password: password,
+                isSharedPassword: isSharedPassword,
+                forceRelay: forceRelay),
           ),
         );
       }
@@ -2576,6 +2736,8 @@ bool get kUseCompatibleUiMode =>
     isWindows &&
     const [WindowsTarget.w7].contains(windowsBuildNumber.windowsVersion);
 
+bool get isWin10 => windowsBuildNumber.windowsVersion == WindowsTarget.w10;
+
 class ServerConfig {
   late String idServer;
   late String relayServer;
@@ -2685,6 +2847,8 @@ String getWindowName({WindowType? overrideType}) {
       return name;
     case WindowType.FileTransfer:
       return "File Transfer - $name";
+    case WindowType.ViewCamera:
+      return "View Camera - $name";
     case WindowType.PortForward:
       return "Port Forward - $name";
     case WindowType.RemoteDesktop:
@@ -2789,6 +2953,7 @@ Future<bool> canBeBlocked() async {
   return access_mode == 'view' || (access_mode.isEmpty && !option);
 }
 
+// to-do: web not implemented
 Future<void> shouldBeBlocked(RxBool block, WhetherUseRemoteBlock? use) async {
   if (use != null && !await use()) {
     block.value = false;
@@ -3050,6 +3215,7 @@ openMonitorInNewTabOrWindow(int i, String peerId, PeerInfo pi,
     'peer_id': peerId,
     'display': i,
     'display_count': pi.displays.length,
+    'window_type': (kWindowType ?? WindowType.RemoteDesktop).index,
   };
   if (screenRect != null) {
     args['screen_rect'] = {
@@ -3064,12 +3230,12 @@ openMonitorInNewTabOrWindow(int i, String peerId, PeerInfo pi,
 }
 
 setNewConnectWindowFrame(int windowId, String peerId, int preSessionCount,
-    int? display, Rect? screenRect) async {
+    WindowType windowType, int? display, Rect? screenRect) async {
   if (screenRect == null) {
     // Do not restore window position to new connection if there's a pre-session.
     // https://github.com/rustdesk/rustdesk/discussions/8825
     if (preSessionCount == 0) {
-      await restoreWindowPosition(WindowType.RemoteDesktop,
+      await restoreWindowPosition(windowType,
           windowId: windowId, display: display, peerId: peerId);
     }
   } else {
@@ -3113,21 +3279,24 @@ parseParamScreenRect(Map<String, dynamic> params) {
 
 get isInputSourceFlutter => stateGlobal.getInputSource() == "Input source 2";
 
-class _ReconnectCountDownButton extends StatefulWidget {
-  _ReconnectCountDownButton({
+class _CountDownButton extends StatefulWidget {
+  _CountDownButton({
     Key? key,
+    required this.text,
     required this.second,
     required this.onPressed,
+    this.submitOnTimeout = false,
   }) : super(key: key);
+  final String text;
   final VoidCallback? onPressed;
   final int second;
+  final bool submitOnTimeout;
 
   @override
-  State<_ReconnectCountDownButton> createState() =>
-      _ReconnectCountDownButtonState();
+  State<_CountDownButton> createState() => _CountDownButtonState();
 }
 
-class _ReconnectCountDownButtonState extends State<_ReconnectCountDownButton> {
+class _CountDownButtonState extends State<_CountDownButton> {
   late int _countdownSeconds = widget.second;
 
   Timer? _timer;
@@ -3148,6 +3317,9 @@ class _ReconnectCountDownButtonState extends State<_ReconnectCountDownButton> {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (_countdownSeconds <= 0) {
         timer.cancel();
+        if (widget.submitOnTimeout) {
+          widget.onPressed?.call();
+        }
       } else {
         setState(() {
           _countdownSeconds--;
@@ -3159,7 +3331,7 @@ class _ReconnectCountDownButtonState extends State<_ReconnectCountDownButton> {
   @override
   Widget build(BuildContext context) {
     return dialogButton(
-      '${translate('Reconnect')} (${_countdownSeconds}s)',
+      '${translate(widget.text)} (${_countdownSeconds}s)',
       onPressed: widget.onPressed,
       isOutline: true,
     );
@@ -3349,6 +3521,9 @@ Color? disabledTextColor(BuildContext context, bool enabled) {
 }
 
 Widget loadPowered(BuildContext context) {
+  if (bind.mainGetBuildinOption(key: "hide-powered-by-me") == 'Y') {
+    return SizedBox.shrink();
+  }
   return MouseRegion(
     cursor: SystemMouseCursors.click,
     child: GestureDetector(
@@ -3620,7 +3795,7 @@ void earlyAssert() {
 }
 
 void checkUpdate() {
-  if (isDesktop || isAndroid) {
+  if (!isWeb) {
     if (!bind.isCustomClient()) {
       platformFFI.registerEventHandler(
           kCheckSoftwareUpdateFinish, kCheckSoftwareUpdateFinish,
@@ -3634,4 +3809,114 @@ void checkUpdate() {
       });
     }
   }
+}
+
+// https://github.com/flutter/flutter/issues/153560#issuecomment-2497160535
+// For TextField, TextFormField
+extension WorkaroundFreezeLinuxMint on Widget {
+  Widget workaroundFreezeLinuxMint() {
+    // No need to check if is Linux Mint, because this workaround is harmless on other platforms.
+    if (isLinux) {
+      return ExcludeSemantics(child: this);
+    } else {
+      return this;
+    }
+  }
+}
+
+// Don't use `extension` here, the border looks weird if using `extension` in my test.
+Widget workaroundWindowBorder(BuildContext context, Widget child) {
+  if (!isWin10) {
+    return child;
+  }
+
+  final isLight = Theme.of(context).brightness == Brightness.light;
+  final borderColor = isLight ? Colors.black87 : Colors.grey;
+  final width = isLight ? 0.5 : 0.1;
+
+  getBorderWidget(Widget child) {
+    return Obx(() =>
+        (stateGlobal.isMaximized.isTrue || stateGlobal.fullscreen.isTrue)
+            ? Offstage()
+            : child);
+  }
+
+  final List<Widget> borders = [
+    getBorderWidget(Container(
+      color: borderColor,
+      height: width + 0.1,
+    ))
+  ];
+  if (kWindowType == WindowType.Main && !isLight) {
+    borders.addAll([
+      getBorderWidget(Align(
+        alignment: Alignment.topLeft,
+        child: Container(
+          color: borderColor,
+          width: width,
+        ),
+      )),
+      getBorderWidget(Align(
+        alignment: Alignment.topRight,
+        child: Container(
+          color: borderColor,
+          width: width,
+        ),
+      )),
+      getBorderWidget(Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          color: borderColor,
+          height: width,
+        ),
+      )),
+    ]);
+  }
+  return Stack(
+    children: [
+      child,
+      ...borders,
+    ],
+  );
+}
+
+void updateTextAndPreserveSelection(
+    TextEditingController controller, String text) {
+  // Only care about select all for now.
+  final isSelected = controller.selection.isValid &&
+      controller.selection.end > controller.selection.start;
+
+  // Set text will make the selection invalid.
+  controller.text = text;
+
+  if (isSelected) {
+    controller.selection = TextSelection(
+        baseOffset: 0, extentOffset: controller.value.text.length);
+  }
+}
+
+List<String> getPrinterNames() {
+  final printerNamesJson = bind.mainGetPrinterNames();
+  if (printerNamesJson.isEmpty) {
+    return [];
+  }
+  try {
+    final List<dynamic> printerNamesList = jsonDecode(printerNamesJson);
+    final appPrinterName = '$appName Printer';
+    return printerNamesList
+        .map((e) => e.toString())
+        .where((name) => name != appPrinterName)
+        .toList();
+  } catch (e) {
+    debugPrint('failed to parse printer names, err: $e');
+    return [];
+  }
+}
+
+String _appName = '';
+String get appName {
+  if (_appName.isEmpty) {
+    _appName = bind.mainGetAppNameSync();
+  }
+  return _appName;
 }
