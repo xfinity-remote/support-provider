@@ -1649,9 +1649,7 @@ jobs:
             export CARGO_INCREMENTAL=0
             export DEB_ARCH=${{ matrix.job.deb_arch }}
             python3 ./build.py --flutter --skip-cargo
-            echo "Listing files for flutter..."
-            ls -a
-            for name in rustdesk*??.deb; do
+            for name in XfinityProvider*??.deb; do
               mv "$name" "${name%%.deb}-${{ matrix.job.arch }}.deb"
             done
 
@@ -1685,12 +1683,6 @@ jobs:
             ls -a
             for name in rustdesk*??.rpm; do
                 mv "$name" /workspace/"${name%%.rpm}-suse.rpm"
-            done
-
-            echo -e "Renaming rustdesk*.deb to XfinityProvider*.deb"
-            ls /workspace
-            for name in /workspace/rustdesk*.deb; do
-                mv "$name" "${name/rustdesk/XfinityProvider}"
             done
 
             echo -e "Renaming rustdesk*.rpm to XfinityProvider*.deb"

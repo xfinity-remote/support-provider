@@ -330,8 +330,6 @@ def build_flutter_deb(version, features):
     system2('mkdir -p tmpdeb/usr/share/icons/hicolor/scalable/apps/')
     system2('mkdir -p tmpdeb/usr/share/applications/')
     system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
-    system2('echo "listing files inside tmpdeb/usr/bin"')
-    system2('ls tmpdeb/usr/bin')
     system2('rm tmpdeb/usr/bin/xfinityprovider || true')
     system2(
         f'cp -r {flutter_build_dir}/* tmpdeb/usr/share/rustdesk/')
