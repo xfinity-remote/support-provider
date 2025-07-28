@@ -14,7 +14,6 @@ script:
  - rm -rf ./AppDir/usr/share/applications
  - echo "📦 Listing AppDir contents:"
  - find ./AppDir -type f
- - chmod +x ./AppDir/usr/bin/xfinityprovider
 AppDir:
   path: ./AppDir
   app_info:
