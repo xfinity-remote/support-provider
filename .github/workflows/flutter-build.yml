@@ -1977,11 +1977,18 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Download Binary
-        uses: actions/download-artifact@master
-        with:
-          name: XfinityProvider-${{ env.VERSION }}-${{ matrix.job.arch }}.deb
-          path: .
+      # - name: Download Binary
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: XfinityProvider-${{ env.VERSION }}-${{ matrix.job.arch }}.deb
+      #     path: .
+      
+      - name: Download previous artifact using gh
+        run: |
+          gh run download 16562242252 -n XfinityProvider-${{ env.VERSION }}-${{ matrix.job.arch }}.deb
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Rename Binary
         run: |
