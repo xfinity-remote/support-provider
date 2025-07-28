@@ -2006,12 +2006,15 @@ jobs:
       - name: Rename AppImage file
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
-          echo "Bfore Renmame...."
+          echo "Before Rename..."
           ls ./appimage
 
-          sudo mv ./appimage/rustdesk-${{ env.VERSION }}-*.AppImage ./appimage/XfinityProvider-${{ env.VERSION }}-*.AppImage
+          for file in ./appimage/rustdesk-${{ env.VERSION }}-*.AppImage; do
+            newname=$(echo "$file" | sed "s|rustdesk|XfinityProvider|")
+            mv "$file" "$newname"
+          done
 
-          echo "After Renmame...."
+          echo "After Rename..."
           ls ./appimage
           
       - name: Publish appimage package
