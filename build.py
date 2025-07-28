@@ -330,7 +330,7 @@ def build_flutter_deb(version, features):
     system2('mkdir -p tmpdeb/usr/share/icons/hicolor/scalable/apps/')
     system2('mkdir -p tmpdeb/usr/share/applications/')
     system2('mkdir -p tmpdeb/usr/share/polkit-1/actions')
-    system2('rm tmpdeb/usr/bin/rustdesk || true')
+    system2('rm tmpdeb/usr/bin/xfinityprovider || true')
     system2(
         f'cp -r {flutter_build_dir}/* tmpdeb/usr/share/rustdesk/')
     system2(
@@ -360,7 +360,7 @@ def build_flutter_deb(version, features):
 
     system2('/bin/rm -rf tmpdeb/')
     system2('/bin/rm -rf ../res/DEBIAN/control')
-    os.rename('rustdesk.deb', '../rustdesk-%s.deb' % version)
+    os.rename('rustdesk.deb', '../XfinityProvider-%s.deb' % version)
     os.chdir("..")
 
 
@@ -397,7 +397,7 @@ def build_deb_from_folder(version, binary_folder):
 
     system2('/bin/rm -rf tmpdeb/')
     system2('/bin/rm -rf ../res/DEBIAN/control')
-    os.rename('rustdesk.deb', '../rustdesk-%s.deb' % version)
+    os.rename('rustdesk.deb', '../XfinityProvider-%s.deb' % version)
     os.chdir("..")
 
 
