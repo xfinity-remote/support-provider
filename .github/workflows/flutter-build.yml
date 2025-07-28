@@ -2011,7 +2011,7 @@ jobs:
       - name: Rename AppImage file
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
-          mv ./appimage/rustdesk-${{ env.VERSION }}-*.AppImage ./appimage/XfinityProvider-${{ env.VERSION }}-*.AppImage
+          sudo mv ./appimage/rustdesk-${{ env.VERSION }}-*.AppImage ./appimage/XfinityProvider-${{ env.VERSION }}-*.AppImage
 
       - name: Publish appimage package
         if: env.UPLOAD_ARTIFACT == 'true'
