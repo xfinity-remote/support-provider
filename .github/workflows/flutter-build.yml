@@ -2006,8 +2006,6 @@ jobs:
           sudo pip3 install git+https://github.com/rustdesk-org/appimage-builder.git
           # run appimage-builder
           pushd appimage
-          echo "Listing folders...."
-          ls /home/runner/work/support-provider/support-provider/appimage/AppDir/usr/share
           sudo appimage-builder --skip-tests --recipe ./AppImageBuilder-${{ matrix.job.arch }}.yml
 
       - name: Rename AppImage file
