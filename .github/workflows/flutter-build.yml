@@ -235,10 +235,11 @@ jobs:
           path: xfinity
 
       - name: Before Signing files
+        shell: bash
         run: |
           ls -a 
           echo "Listing ./xfinity"
-          ls ./xfinity
+          find ./rustdesk -type f
 
 
       - name: Sign rustdesk files
@@ -255,10 +256,11 @@ jobs:
       
 
       - name: After Signing files
+        shell: bash
         run: |
           ls -a 
           echo "Listing ./xfinity"
-          ls ./xfinity
+          find ./rustdesk -type f
 
 
       # - name: Sign rustdesk files
@@ -302,11 +304,11 @@ jobs:
           path: SignOutput
 
       - name: Before Signing self-extracted files
+        shell: bash
         run: |
           ls -a 
           echo "Listing ./SignOutput"
-          ls ./SignOutput
-
+          find ./SignOutput -type f
 
       - name: Sign rustdesk self-extracted file
         if: env.UPLOAD_ARTIFACT == 'true' && env.SIGNPATH_ORG_ID != ''
@@ -322,10 +324,11 @@ jobs:
       
 
       - name: After Signing self-extracted files
+        shell: bash
         run: |
           ls -a 
           echo "Listing ./SignOutput"
-          ls -a ./SignOutput
+          find ./SignOutput -type f
 
       # - name: Sign rustdesk self-extracted file
       #   if: env.UPLOAD_ARTIFACT == 'true' && env.SIGN_BASE_URL != ''
